@@ -41,7 +41,7 @@
         // ???
         //TODO: do nothing until I can think of something more clever
       }else{
-        this.fetch({data:{"start-index":nextStartIndex}});
+        this.fetch({data:{"start-index":nextStartIndex},add:true});
       }
       return this;
     },
@@ -58,6 +58,18 @@
 
     jumpTo: function(startIndex) {
       this.fetch({data:{"start-index":startIndex}});
+    },
+    
+    updateCache: function(e){
+        alert("update cache");
+    },
+    
+    getLastIndex: function(){
+        var lastIndex = this.startIndex + this.itemsPerPage;
+        if(lastIndex > this.totalItems){
+            lastIndex = this.totalItems;
+        }
+        return lastIndex;
     }
 
   });
@@ -104,6 +116,17 @@
       //set up a default template
       this.template = this.options.template || "#movieGridTemplate";
     },
+          
+    events:{
+      "click": "clickHandler"
+    },
+    
+    clickHandler: function(e){
+        e.preventDefault();
+        var elem = e.currentTarget;
+        this.index = $(elem).index();
+        this.trigger("movieItem:clicked", this.index)
+    },
 
     render: function(){
 //      $(this.el).append(this.model.get("title"));
@@ -123,12 +146,16 @@
       //NOTE: without bindAll, this.el is undefined in addOne
       _.bindAll(this);
       this.model.on("change:view", this.addAll, this);
-      this.collection.bind("reset", this.addAll, this);
+      this.collection.on("reset", this.addAll, this);
+      this.collection.on("add", this.addAll, this);
+      this.currDataIndex = 0;
+      this.cacheDataSize= 10;
       this.collection.fetch();
     },
 
     addOne: function(movie){
       var movieView = new Backtube.MovieView({model:movie, template:this.model.getTemplate()});
+      movieView.on("movieItem:clicked", this.updateIndex, this);
       $(this.el).append(movieView.render().el);
       return this;
     },
@@ -137,6 +164,15 @@
       $(this.el).html("");
       this.collection.each(this.addOne);
       return this;
+    },
+    
+    updateIndex: function(e){
+        this.currDataIndex = e;
+        var lastCacheElem = this.currDataIndex + this.cacheDataSize;
+        var collectionLastDataIndex = this.collection.getLastIndex();
+        if(lastCacheElem > collectionLastDataIndex){
+            this.collection.updateCache();
+        }
     }
   });
 
