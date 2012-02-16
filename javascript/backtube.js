@@ -36,7 +36,7 @@
     },
 
     next: function(append){
-      var nextStartIndex = this.startIndex + this.itemsPerPage;
+      var nextStartIndex = 1;//this.startIndex + this.itemsPerPage;
       if(nextStartIndex > this.totalItems){
         // ???
         //TODO: do nothing until I can think of something more clever
@@ -60,12 +60,12 @@
       this.fetch({data:{"start-index":startIndex}});
     },
     
-    updateCache: function(e){
-        alert("update cache");
+    updateCache: function(startIndex, endIndex){
+        this.fetch({data:{"start-index":startIndex,"max-results":(endIndex - startIndex)}, add:true});
     },
     
     getLastIndex: function(){
-        var lastIndex = this.startIndex + this.itemsPerPage;
+        var lastIndex = this.startIndex + this.itemsPerPage - 1;
         if(lastIndex > this.totalItems){
             lastIndex = this.totalItems;
         }
@@ -171,7 +171,7 @@
         var lastCacheElem = this.currDataIndex + this.cacheDataSize;
         var collectionLastDataIndex = this.collection.getLastIndex();
         if(lastCacheElem > collectionLastDataIndex){
-            this.collection.updateCache();
+            this.collection.updateCache(collectionLastDataIndex + 1, lastCacheElem + 5);
         }
     }
   });
