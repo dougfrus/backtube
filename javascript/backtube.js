@@ -34,6 +34,17 @@
       this.itemsPerPage = response.data.itemsPerPage;
       return response.data.items;
     },
+    
+    add : function(models, options) {
+        var newModels = [];
+        _.each(models, function(model) {
+            var existingEl = this.get(model.id);
+            if (_.isUndefined(existingEl)) {
+                newModels.push(model);    
+            }
+        }, this);
+        return Backbone.Collection.prototype.add.call(this, newModels, options);
+    },
 
     next: function(append){
       var nextStartIndex = 1;//this.startIndex + this.itemsPerPage;
@@ -142,14 +153,17 @@
 
     initialize: function(){
       this.model = new Backtube.MovieListViewHelper();
+      this.currDataIndex = 0;
+      this.cacheDataSize = 10;
+      this.maxCollectionSize = 35;
 
       //NOTE: without bindAll, this.el is undefined in addOne
       _.bindAll(this);
+      
       this.model.on("change:view", this.addAll, this);
       this.collection.on("reset", this.addAll, this);
-      this.collection.on("add", this.addAll, this);
-      this.currDataIndex = 0;
-      this.cacheDataSize= 10;
+      this.collection.on("add", this.updateList, this);
+      
       this.collection.fetch();
     },
 
@@ -164,6 +178,16 @@
       $(this.el).html("");
       this.collection.each(this.addOne);
       return this;
+    },
+    
+    updateList: function(){
+        // var size = this.collection.length;
+        // if(size > this.maxCollectionSize){
+            // this.collection.models.splice(0, size - this.maxCollectionSize);
+            // var len = this.collection.length;
+            // var modLen = this.collection.models.length;
+        // }
+        this.addAll();
     },
     
     updateIndex: function(e){
