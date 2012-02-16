@@ -35,24 +35,24 @@
       return response.data.items;
     },
 
-    next: function(){
+    next: function(append){
       var nextStartIndex = this.startIndex + this.itemsPerPage;
       if(nextStartIndex > this.totalItems){
         // ???
         //TODO: do nothing until I can think of something more clever
       }else{
-        this.fetch({data:{"start-index":nextStartIndex},add:true});
+        this.fetch({data:{"start-index":nextStartIndex},add:append});
       }
       return this;
     },
 
-    previous: function(){
+    previous: function(append){
       var nextStartIndex = this.startIndex - this.itemsPerPage;
       if(nextStartIndex < 0){
         nextStartIndex = 1;
       }
 
-      this.fetch({data:{"start-index":nextStartIndex}});
+      this.fetch({data:{"start-index":nextStartIndex}, add:append});
       return this;
     },
 
@@ -183,12 +183,19 @@
       _.bindAll(this);
       this.viewToggleButton = new Backtube.ViewToggleButton({model:this.options.viewToggle});
       this.pagination = new Backtube.Pagination({collection: this.options.movieList});
+      this.appendButton =  new Backtube.Button({collection:this.options.movieList,
+                              label:"Append",
+                              clickHandler : function(){
+                                this.collection.next(true);
+                                this.render();
+                              } });
       this.render();
     },
     render: function(){
       $(this.el).html("");
       $(this.el).append(this.viewToggleButton.el);
       $(this.el).append(this.pagination.el);
+      $(this.el).append(this.appendButton.el);
 
     }
   });
@@ -240,13 +247,13 @@
       this.nextButton = new Backtube.Button({model:this.collection,
                               label:"Next",
                               clickHandler : function(){
-                                this.model.next();
+                                this.model.next(false);
                                 this.render();
                               } });
       this.previousButton = new Backtube.Button({model:this.collection,
                               label:"Prev",
                               clickHandler : function(){
-                                this.model.previous();
+                                this.model.previous(false);
                                 this.render();
                               } });
       this.collection.on("reset", this.render, this);
